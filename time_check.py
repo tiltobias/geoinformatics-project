@@ -1,11 +1,11 @@
 import pandas as pd
 from datetime import datetime
 
-folder = "Kinematic data/"
+folder = "KinematicData/"
 files = ["T1.csv", "T2.csv", "T3.csv", "T4.csv", "T5.csv", "T6.csv", "T7.csv", "T8.csv"]
 
 # Create an empty DataFrame
-df = pd.DataFrame(columns=["file", "sorted", "first_time", "last_time", "n_times", "n_times_div_60", "diff_seconds", "time_matches_n_times"])
+df = pd.DataFrame(columns=["file", "is_sorted", "first_time", "last_time", "n_lines", "n_times_div_60", "diff_seconds", "time_matches_n_times"])
 
 def time_analysis(file):
     times = []
@@ -33,20 +33,18 @@ def time_analysis(file):
     diff_seconds = (t2 - t1).total_seconds()
     if diff_seconds < 0:
         diff_seconds += 24 * 3600  # Handle day wrap-around
-
-    expected_seconds = len(times) - 1
-    time_matches = diff_seconds == expected_seconds
+        
 
     # Create a dictionary with results
     result = {
         "file": file,
-        "sorted": times == sorted(times),
+        "is_sorted": times == sorted(times),
         "first_time": first_time,
         "last_time": last_time,
-        "n_times": len(times),
+        "n_lines": len(times),
         "n_times_div_60": len(times) / 60,
         "diff_seconds": diff_seconds,
-        "time_matches_n_times": time_matches
+        "time_matches_n_times": diff_seconds == float(len(times) - 1),
     }
 
     return result
