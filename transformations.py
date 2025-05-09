@@ -1,4 +1,8 @@
 import numpy as np
+"""
+These functions are from the solution of Positioning&LBS exercise 1.
+Author: Tobias Andresen
+"""
 
 def X_GG_GC(X_GG: np.ndarray) -> np.ndarray:
     # Transformation from ITRF Geodetic (GG) to Global Cartesian (GC) coordinates
