@@ -16,9 +16,9 @@ for idx, row in df.iterrows():
 
 
 # Make a line between the points
-folium.PolyLine(
-    locations=df[['Latitude', 'Longitude']].values,
-    color='blue', weight=2.5, opacity=1
-).add_to(map)
+# folium.PolyLine(
+#     locations=df[['Latitude', 'Longitude']].values,
+#     color='blue', weight=2.5, opacity=1
+# ).add_to(map)
 
 map.save('map.html')

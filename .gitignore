@@ -3,3 +3,5 @@
 
 # Python environment files
 .venv/
+
+__pycache__/
