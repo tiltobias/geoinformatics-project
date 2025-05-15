@@ -48,7 +48,7 @@ for i, ue in enumerate(UE_LC):
         distance = np.linalg.norm(bs - ue)
         rho_bs_ue[i, j] = distance
 
-
+np.random.seed(42)
 rho_bs_ue_noise = rho_bs_ue + np.random.normal(0, 1, size=rho_bs_ue.shape)
 
 # Save the pseudoranges to a CSV file
