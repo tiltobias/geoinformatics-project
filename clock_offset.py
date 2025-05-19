@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 np.random.seed(42)  # Seed to reproduce results
 n = 1000
-clock_offset_base = 1000 # 1 microsecond
+clock_offset_base = 0 # 1 microsecond # ???? #TODO
 clock_offset_change = .5 # 0.5 nanoseconds
 
 # Randomly assign one or zero to n values -> go up or down

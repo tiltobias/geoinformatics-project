@@ -25,7 +25,6 @@ O_GC = BS_GC[0]
 base_stations_LC = [R_GC_LC(O_GG) @ (X - O_GC) for X in BS_GC]
 
 
-
 # Transform User Equipment (UE) coordinates to Local Cartesian coordinates
 UE_GG = np.array([np.deg2rad(T1[:,0]), np.deg2rad(T1[:,1]), T1[:,2]]).T
 UE_GC = [X_GG_GC(X) for X in UE_GG]
@@ -40,6 +39,10 @@ height_base_stations = mean_ue_height + 20
 base_stations_LC = np.array(base_stations_LC)
 base_stations_LC[:, 2] = height_base_stations
 
+# Write the base stations in Local Cartesian coordinates to a CSV file
+base_stations_LC = pd.DataFrame(base_stations_LC, columns=["E", "N", "U"])
+base_stations_LC.to_csv('./base_stations_LC.csv', index=False)
+
 # Calculate pseudoranges
 rho_bs_ue = np.zeros((len(UE_LC), len(base_stations_LC)))
 for i, ue in enumerate(UE_LC):
@@ -49,7 +52,10 @@ for i, ue in enumerate(UE_LC):
         rho_bs_ue[i, j] = distance
 
 np.random.seed(42)
-rho_bs_ue_noise = rho_bs_ue + np.random.normal(0, 1, size=rho_bs_ue.shape)
+n = np.random.normal(0, 1, size=rho_bs_ue.shape)
+dt = pd.read_csv('./clock_offset.csv').to_numpy()[0:len(rho_bs_ue)] / 1e9  # Convert nanoseconds to seconds
+c = 299792458  # Speed of light in m/s
+rho_bs_ue_noise = rho_bs_ue + n + c * dt
 
 # Save the pseudoranges to a CSV file
 pseudoranges_df = pd.DataFrame(rho_bs_ue_noise, columns=["BS1", "BS2", "BS3", "BS4", "BS5", "BS6", "BS7", "BS8"])
