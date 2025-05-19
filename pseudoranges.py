@@ -33,6 +33,11 @@ print("User Equipment in Local Cartesian coordinates:")
 for i, ue in enumerate(UE_LC):
     print(f"UE{i+1}: {ue}")
 
+# Write the User Equipment in Local Cartesian coordinates to a CSV file
+UE_LC_df = pd.DataFrame(UE_LC, columns=["E", "N", "U"])
+UE_LC_df.to_csv('./UE_LC.csv', index=False)
+
+
 # New height of the base stations
 mean_ue_height = np.mean([u[2] for u in UE_LC])
 height_base_stations = mean_ue_height + 20
@@ -40,8 +45,8 @@ base_stations_LC = np.array(base_stations_LC)
 base_stations_LC[:, 2] = height_base_stations
 
 # Write the base stations in Local Cartesian coordinates to a CSV file
-base_stations_LC = pd.DataFrame(base_stations_LC, columns=["E", "N", "U"])
-base_stations_LC.to_csv('./base_stations_LC.csv', index=False)
+base_stations_df = pd.DataFrame(base_stations_LC, columns=["E", "N", "U"])
+base_stations_df.to_csv('./base_stations_LC.csv', index=False)
 
 # Calculate pseudoranges
 rho_bs_ue = np.zeros((len(UE_LC), len(base_stations_LC)))
