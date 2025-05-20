@@ -4,6 +4,9 @@ import pandas as pd
 import folium
 from streamlit_folium import st_folium
 
+df = pd.read_csv('./KinematicData/T1.csv')
+
+
 st.sidebar.header("Simulation parameters")
 sigma = st.sidebar.number_input("Noise σ (m)", 0.0, 10.0, 1.0)
 step  = st.sidebar.number_input("Clock random-walk step (ns)", 0.0, 5.0, 0.5)
@@ -13,6 +16,17 @@ seed  = st.sidebar.number_input("Random-seed", 0, 2**32-1, 42)
 m = folium.Map(location= [45.3435, 9.0102], zoom_start=16)
 # Render map in streamlit
 st_data = st_folium(m, width=725)
+
+
+if (st.button("Show true user equipment positions")):
+    for idx, row in df.iterrows():
+        folium.CircleMarker(
+            location=[row['Latitude'], row['Longitude']], radius=5,
+            color='green', fill=False, fill_opacity=0.6,
+            popup=folium.Popup("Measured", parse_html=True)
+        ).add_to(m)
+    st_data = st_folium(m, width=725)
+
 
 # if st.sidebar.button("Run simulation"):
 #     pr_df, clk_df = run_simulation(sigma, step, seed)

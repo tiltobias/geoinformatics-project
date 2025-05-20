@@ -5,9 +5,6 @@ import pandas as pd
 # Load user position in Local Cartesian coordinates (skip 't' column)
 user_position_LC = pd.read_csv('./user_position_LSM.csv')[["E", "N", "U"]].to_numpy()
 
-# Load base station positions in LC (assume no header)
-base_stations_LC = pd.read_csv('./base_stations_LC.csv', header=0).to_numpy()
-
 # Load base station global geodetic coordinates (skip 'Title')
 base_stations_df = pd.read_csv('./base_stations.csv')
 base_stations_GG = base_stations_df[["Latitude", "Longitude", "Height"]].to_numpy()
@@ -32,10 +29,13 @@ R = R_GC_LC(X_O_GG_rad)
 # Step 4: Transform user positions from LC to GC
 user_position_GC = np.array([X_O_GC + R.T @ X for X in user_position_LC])
 
-# Step 5: Convert each GC position to GG
+# Step 5: Convert each GC position to GG (in radians)
 user_position_GG_rad = np.array([X_GC_GG(X) for X in user_position_GC])
 user_position_GG_deg = np.rad2deg(user_position_GG_rad)
 
-# Step 6: Save to CSV
+# Step 6: Fix height using origin height + local U
+user_position_GG_deg[:, 2] = h + user_position_LC[:, 2]
+
+# Step 7: Save to CSV
 user_position_GG_df = pd.DataFrame(user_position_GG_deg, columns=["Latitude", "Longitude", "Height"])
 user_position_GG_df.to_csv('./user_position_GG.csv', index=False)
