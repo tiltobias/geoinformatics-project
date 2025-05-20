@@ -4,7 +4,7 @@ import pandas as pd
 P = pd.read_csv("pseudoranges.csv").to_numpy()
 base_stations = pd.read_csv("base_stations_LC.csv").to_numpy()
 
-def LSM(P: np.ndarray, x0: np.ndarray, base_stations: np.ndarray, max_iter=50, tol=1e-3) -> np.ndarray:
+def LSM(P: np.ndarray, x0: np.ndarray, base_stations: np.ndarray, max_iter=50, tol=1e-6) -> np.ndarray:
     
     user_position = np.zeros((P.shape[0], 4))  # Initialize user position array
     user_position[0, :] = np.append(x0, 0)
@@ -14,7 +14,7 @@ def LSM(P: np.ndarray, x0: np.ndarray, base_stations: np.ndarray, max_iter=50, t
             A = np.zeros((base_stations.shape[0], 4))
             for i in range(base_stations.shape[0]):
                 dist = np.linalg.norm(x[:3] - base_stations[i, :])
-                A[i, :3] = -(x[:3] - base_stations[i, :]) / dist
+                A[i, :3] = (x[:3] - base_stations[i, :]) / dist
                 A[i, 3] = 1
             return A
         
@@ -39,7 +39,7 @@ def LSM(P: np.ndarray, x0: np.ndarray, base_stations: np.ndarray, max_iter=50, t
 
             dx, *_ = np.linalg.lstsq(A(x, base_stations), dP(x, base_stations, epoch), rcond=None)
             c = 299792458
-            x += dx
+            x = np.append(x[0:3] + dx[0:3], (np.array([x[3] + dx[3]]))/c)
 
             if np.linalg.norm(dx) < tol:
                 print('Break at cycle: ', i+1, ' epoch: ', epoch+1, ' with position: ', x)
