@@ -40,7 +40,8 @@ UE_LC_df.to_csv('./UE_LC.csv', index=False)
 
 # New height of the base stations
 mean_ue_height = np.mean([u[2] for u in UE_LC])
-height_base_stations = mean_ue_height + 20
+# height_base_stations = mean_ue_height + 20
+height_base_stations = 20 
 base_stations_LC = np.array(base_stations_LC)
 base_stations_LC[:, 2] = height_base_stations
 
