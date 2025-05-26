@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from transformations import X_GC_GG, R_GC_LC
 
 P = pd.read_csv("pseudoranges.csv").to_numpy()
 base_stations = pd.read_csv("base_stations_LC.csv").to_numpy()
@@ -45,23 +46,21 @@ def LSM(P: np.ndarray, x0: np.ndarray, base_stations: np.ndarray, max_iter=50, t
                 print('Break at cycle: ', i+1, ' epoch: ', epoch+1, ' with position: ', x)
                 break
             
-
-
-            # # X_ = X_start[0:3] + X_hat[0:3]
-            # # X_ = np.array([[X_[0,0]], [X_[1,0]], [X_[2,0]], [X_hat[3,0]/c]])
-            # c = 299792458
-            # X_new = np.append(X_old[0:3] + X_hat[0:3], [X_hat[3] / c]) # Above 2 lines to the same as this line
-            
-            # user_position[epoch, :] = X_new
-
-            # if max(abs(X_hat[0:3])) <= tol:
-            #     print('Break at cycle: ', i+1, ' epoch: ', epoch+1, ' with position: ', X_new)
-            #     break
-            # if i == (max_iter-1):
-            #     print('Convergence failed')
         user_position[epoch, :] = x
         if epoch + 1 < P.shape[0]:
             user_position[epoch + 1] = x
+
+        # b = P - dPrs_
+        # Prs = A_ @ x + b
+        # v = P - Prs
+        # sigma0_squared = v.T @ v / (8 - 4) # m - n, where m is the number of pseudoranges and n is the number of unknowns (4: E, N, U, t)
+        # C_xx = sigma0_squared * np.linalg.inv(A_.T @ A_)
+        # # Calculation of PDOP
+        # Q_geom = np.linalg.inv(A_.T @ A_)[0:3, 0:3]
+        # R_0 = R_GC_LC(X_GC_GG(x)) # flatten the last element of X_history for R calculation
+        # Q_LC = R_0 @ Q_geom @ R_0.T
+        # PDOP = np.sqrt(np.trace(Q_LC)) # trace = sum of diagonal elements
+        # print(np.diag(C_xx))
 
 
     return user_position
