@@ -3,7 +3,8 @@ import folium
 
 df = pd.read_csv('./KinematicData/T1.csv')
 df_lsm = pd.read_csv('./user_position_GG.csv')
-
+df_kalman = pd.read_csv('./kalman_GG.csv')
+df_ex_kalman = pd.read_csv('./ex_kalman_GG.csv')
 
 
 # Create a map centered around the average latitude and longitude
@@ -23,6 +24,21 @@ for idx, row in df_lsm.iterrows():
         popup=folium.Popup("LSM", parse_html=True),
         icon=folium.Icon(color='red')
     ).add_to(map)
+
+for idx, row in df_kalman.iterrows():
+    folium.Marker(
+        location=[row['Latitude'], row['Longitude']],
+        popup=folium.Popup("Kalman", parse_html=True),
+        icon=folium.Icon(color='blue')
+    ).add_to(map)
+
+for idx, row in df_ex_kalman.iterrows():
+    folium.Marker(
+        location=[row['Latitude'], row['Longitude']],
+        popup=folium.Popup("Ex Kalman", parse_html=True),
+        icon=folium.Icon(color='orange')
+    ).add_to(map)
+
 
 
 # Make a line between the points

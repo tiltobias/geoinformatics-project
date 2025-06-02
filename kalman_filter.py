@@ -48,5 +48,5 @@ plt.show()
 
 
 # Save estimated positions to CSV
-results_df = pd.DataFrame(data, columns=['E', 'N'])
+results_df = pd.DataFrame(x[:, :, 0], columns=['E', 'N', 'VN', 'VE'])
 results_df.to_csv("kalman_LC.csv", index=False)
