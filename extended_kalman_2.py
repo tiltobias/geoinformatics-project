@@ -188,51 +188,24 @@ std_N = np.sqrt(covariances[:, 0, 0])
 std_E = np.sqrt(covariances[:, 1, 1])
 
 # Create plots
-fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 12))
 
-# Plot 1: Trajectory
-ax1.plot(positions_E, positions_N, 'b-', linewidth=2, label='Estimated trajectory')
-ax1.plot(positions_E[0], positions_N[0], 'go', markersize=8, label='Start')
-ax1.plot(positions_E[-1], positions_N[-1], 'ro', markersize=8, label='End')
+# Plot trajectory
+plt.plot(positions_E, positions_N, 'b-', linewidth=2, label='Estimated trajectory')
+plt.plot(positions_E[0], positions_N[0], 'go', markersize=8, label='Start')
+plt.plot(positions_E[-1], positions_N[-1], 'ro', markersize=8, label='End')
 
 # Plot base stations
-ax1.scatter(base_stations[:, 0], base_stations[:, 1], c='red', s=100, marker='^', 
+plt.scatter(base_stations[:, 0], base_stations[:, 1], c='red', s=100, marker='^', 
            label='Base stations', edgecolors='black')
 for i, (E, N, U) in enumerate(base_stations):
-    ax1.annotate(f'BS{i+1}', (E, N), xytext=(5, 5), textcoords='offset points')
+    plt.annotate(f'BS{i+1}', (E, N), xytext=(5, 5), textcoords='offset points')
 
-ax1.set_xlabel('East (m)')
-ax1.set_ylabel('North (m)')
-ax1.set_title('Estimated User Trajectory')
-ax1.legend()
-ax1.grid(True)
-ax1.axis('equal')
-
-# Plot 2: Position uncertainties
-time_steps = np.arange(n_measurements)
-ax2.plot(time_steps, std_N, 'b-', label='North std')
-ax2.plot(time_steps, std_E, 'r-', label='East std')
-ax2.set_xlabel('Time step')
-ax2.set_ylabel('Position uncertainty (m)')
-ax2.set_title('Position Uncertainty Over Time')
-ax2.legend()
-ax2.grid(True)
-
-# Plot 3: Velocities
-ax3.plot(time_steps, velocities_N, 'b-', label='North velocity')
-ax3.plot(time_steps, velocities_E, 'r-', label='East velocity')
-ax3.set_xlabel('Time step')
-ax3.set_ylabel('Velocity (m/s)')
-ax3.set_title('Estimated Velocities')
-ax3.legend()
-ax3.grid(True)
-
-# Plot 4: Clock bias
-ax4.plot(time_steps, clock_bias, 'g-', linewidth=2)
-ax4.set_xlabel('Time step')
-ax4.set_ylabel('Clock bias (m)')
-ax4.set_title('Estimated Clock Bias')
-ax4.grid(True)
+plt.xlabel('East (m)')
+plt.ylabel('North (m)')
+plt.title('Estimated User Trajectory')
+plt.legend()
+plt.grid(True)
+plt.axis('equal')
 
 plt.tight_layout()
 plt.show()
