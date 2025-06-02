@@ -224,3 +224,7 @@ avg_speed = np.mean(np.sqrt(velocities_N**2 + velocities_E**2))
 print(f"\nTrajectory Statistics:")
 print(f"Total distance traveled: {total_distance:.2f} m")
 print(f"Average speed: {avg_speed:.3f} m/s")
+
+# Save results to CSV
+results_df = pd.DataFrame(estimated_states, columns=['N', 'E', 'VN', 'VE', 'ClockBias'])
+results_df.to_csv("ex_kalman_LC.csv", index=False)

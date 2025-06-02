@@ -45,3 +45,8 @@ plt.plot(x[:, 0, 0], x[:, 1, 0], "r-", linewidth=3) # estimated path
 plt.plot(data[0, 0], data[0, 1], "go") # start point
 plt.legend(["Data", "Estimated path", "Start point"])
 plt.show()
+
+
+# Save estimated positions to CSV
+results_df = pd.DataFrame(data, columns=['E', 'N'])
+results_df.to_csv("kalman_LC.csv", index=False)
