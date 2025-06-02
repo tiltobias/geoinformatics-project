@@ -14,11 +14,12 @@ base_stations = pd.read_csv("base_stations_LC.csv").to_numpy()
 
 # Constants
 c = 299792458.0  # Speed of light in m/s
-dt = 1.0  # Time step in seconds
+dt = 1.0  # Time step in seconds (used in the transition matrix T)
 sigma_dt = 0.5e-9  # Clock drift standard deviation (0.5 ns)
-sigma_pos = 1.0  # Position process noise standard deviation
-sigma_vel = 0.1  # Velocity process noise standard deviation
-sigma_pseudorange = 1.0  # Pseudorange measurement noise standard deviation
+sigma_pos = 1.0  # Position process noise standard deviation (Assuming 1 meter)
+sigma_vel = 0.1  # Velocity process noise standard deviation (Assuming 0.1 m/s)
+sigma_pseudorange = 1.0  # Pseudorange measurement noise standard deviation (Assuming 1 meter)
+# TODO Review Assumptions above
 
 # Number of base stations and measurements
 n_stations = base_stations.shape[0]
@@ -32,7 +33,7 @@ print(f"Pseudoranges shape: {P.shape}")
 # State vector: [N_u, E_u, V_N, V_E, c*dt_u]
 # N_u, E_u: North and East positions
 # V_N, V_E: North and East velocities  
-# c*dt_u: Clock bias (in meters)
+# c*dt_u: Clock offset (in meters)
 
 # Initialize state vector
 # Starting guess: center of base stations
@@ -40,9 +41,9 @@ initial_N = np.mean(base_stations[:, 1])  # North coordinate
 initial_E = np.mean(base_stations[:, 0])  # East coordinate
 initial_VN = 0.0  # Initial north velocity
 initial_VE = 0.0  # Initial east velocity
-initial_clock_bias = 0.0  # Initial clock bias
+initial_clock_offset = 0.0  # Initial clock offset
 
-x_hat = np.array([initial_N, initial_E, initial_VN, initial_VE, initial_clock_bias])
+x_hat = np.array([initial_N, initial_E, initial_VN, initial_VE, initial_clock_offset])
 print(f"Initial state estimate: {x_hat}")
 
 # State transition matrix T_k (constant velocity model)
@@ -60,11 +61,11 @@ C_epsilon = np.diag([
     sigma_pos**2,  # Position E noise
     sigma_vel**2,  # Velocity N noise
     sigma_vel**2,  # Velocity E noise
-    (c * sigma_dt)**2  # Clock bias noise
+    (c * sigma_dt)**2  # Clock offset noise
 ])
 
 # Initial error covariance matrix
-K = np.eye(5) * 100.0  # Large initial uncertainty
+C_error = np.eye(5) * 100.0  # Large initial uncertainty (#TODO Assumption: 100 m uncertainty)
 
 # Measurement noise covariance matrix C_k^nu
 C_nu = np.eye(n_stations) * sigma_pseudorange**2
@@ -74,8 +75,8 @@ def compute_predicted_pseudoranges(state, base_stations):
     Compute predicted pseudoranges based on current state estimate.
     rho_k^i = sqrt((N^i-N_u)^2 + (E^i-E_u)^2 + (U^i-U_u)^2) + c*dt_u
     """
-    N_u, E_u, _, _, clock_bias = state
-    U_u = 0.0  # Assuming user is at ground level
+    N_u, E_u, _, _, clock_offset = state
+    U_u = 0.0  # Assuming user is at ground level (#TODO)
     
     predicted_ranges = np.zeros(n_stations)
     
@@ -85,8 +86,8 @@ def compute_predicted_pseudoranges(state, base_stations):
         # Geometric range
         geometric_range = np.sqrt((N_i - N_u)**2 + (E_i - E_u)**2 + (U_i - U_u)**2)
         
-        # Add clock bias
-        predicted_ranges[i] = geometric_range + clock_bias
+        # Add clock offset
+        predicted_ranges[i] = geometric_range + clock_offset
     
     return predicted_ranges
 
@@ -125,12 +126,8 @@ def compute_jacobian_A(state, base_stations):
 estimated_states = np.zeros((n_measurements, 5))
 covariances = np.zeros((n_measurements, 5, 5))
 
-print("\nStarting EKF processing...")
-
 # EKF Main Loop
 for k in range(n_measurements):
-    print(f"Processing measurement {k+1}/{n_measurements}")
-    
     # Current measurements
     y_k = P[k, :]
     
@@ -142,7 +139,7 @@ for k in range(n_measurements):
         x_hat_pred = T @ x_hat
     
     # Predict covariance: K_k = C_k^ε + T_k * C_(k-1)^e * T_k^T
-    K_pred = C_epsilon + T @ K @ T.T
+    K_pred = C_epsilon + T @ C_error @ T.T
     
     # UPDATE STEP
     # Compute predicted measurements
@@ -164,24 +161,19 @@ for k in range(n_measurements):
     
     # Updated covariance: C_k^e = (I - G_k * A_k) * K_k
     I = np.eye(5)
-    K = (I - G_k @ A_k) @ K_pred
+    C_error = (I - G_k @ A_k) @ K_pred
     
     # Store results
     estimated_states[k] = x_hat
-    covariances[k] = K
+    covariances[k] = C_error
     
-    # Print progress every 10 measurements
-    if (k + 1) % 10 == 0 or k == 0:
-        print(f"  State at k={k}: N={x_hat[0]:.2f}, E={x_hat[1]:.2f}, VN={x_hat[2]:.3f}, VE={x_hat[3]:.3f}, ClockBias={x_hat[4]:.2f}")
-
-print("\nEKF processing completed!")
 
 # Extract results for plotting
 positions_N = estimated_states[:, 0]
 positions_E = estimated_states[:, 1]
 velocities_N = estimated_states[:, 2]
 velocities_E = estimated_states[:, 3]
-clock_bias = estimated_states[:, 4]
+clock_offset = estimated_states[:, 4]
 
 # Extract position uncertainties (standard deviations)
 std_N = np.sqrt(covariances[:, 0, 0])
@@ -214,7 +206,7 @@ plt.show()
 print(f"\nFinal Results:")
 print(f"Final position: N = {positions_N[-1]:.2f} m, E = {positions_E[-1]:.2f} m")
 print(f"Final velocity: VN = {velocities_N[-1]:.3f} m/s, VE = {velocities_E[-1]:.3f} m/s")
-print(f"Final clock bias: {clock_bias[-1]:.2f} m")
+print(f"Final clock offset: {clock_offset[-1]:.2f} m")
 print(f"Final position uncertainties: σN = {std_N[-1]:.2f} m, σE = {std_E[-1]:.2f} m")
 
 # Calculate and print some statistics
@@ -226,5 +218,5 @@ print(f"Total distance traveled: {total_distance:.2f} m")
 print(f"Average speed: {avg_speed:.3f} m/s")
 
 # Save results to CSV
-results_df = pd.DataFrame(estimated_states, columns=['N', 'E', 'VN', 'VE', 'ClockBias'])
+results_df = pd.DataFrame(estimated_states, columns=['N', 'E', 'VN', 'VE', 'ClockOffset'])
 results_df.to_csv("ex_kalman_LC.csv", index=False)
