@@ -57,7 +57,7 @@ for i, ue in enumerate(UE_LC):
         rho_bs_ue[i, j] = distance
 
 np.random.seed(42)
-n = np.random.normal(0, 1, size=rho_bs_ue.shape)
+n = np.random.normal(0, 0.1, size=rho_bs_ue.shape)
 dt = pd.read_csv('./clock_offset.csv').to_numpy()[0:len(rho_bs_ue)] / 1e9  # Convert nanoseconds to seconds
 c = 299792458  # Speed of light in m/s
 rho_bs_ue_noise = rho_bs_ue + n + c * dt

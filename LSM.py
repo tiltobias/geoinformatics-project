@@ -14,16 +14,20 @@ def LSM(P: np.ndarray, x0: np.ndarray, base_stations: np.ndarray, max_iter=50, t
             # Calculate the Jacobian matrix A
             A = np.zeros((base_stations.shape[0], 4))
             for i in range(base_stations.shape[0]):
-                dist = np.linalg.norm(x[:3] - base_stations[i, :])
-                A[i, :3] = (x[:3] - base_stations[i, :]) / dist
+                x_2 = x[:3]
+                x_2[2] = 0
+                dist = np.linalg.norm(x_2 - base_stations[i, :])
+                A[i, :3] = (x_2 - base_stations[i, :]) / dist
                 A[i, 3] = 1
             return A
         
     def dP(x: np.ndarray, base_stations: np.ndarray, epoch: int) -> np.ndarray:
         # Calculate the difference between the measured and calculated pseudoranges
         dP = np.zeros(base_stations.shape[0])
+        x_2 = x[:3]
+        x_2[2] = 0 
         for i in range(base_stations.shape[0]):
-            dist = np.linalg.norm(x[:3] - base_stations[i, :])
+            dist = np.linalg.norm(x_2[:3] - base_stations[i, :])
             dP[i] = P[epoch, i] - dist # P[0, i] is the measured pseudorange for epoch 0
         return dP
 
@@ -84,4 +88,13 @@ print(test)
 user_position_df = pd.DataFrame(test, columns=["E", "N", "U", "t"])
 user_position_df.to_csv('./user_position_LSM.csv', index=False)
 
-
+# plot clock offset
+import matplotlib.pyplot as plt
+plt.figure(figsize=(10, 5))
+plt.plot(test[:, 3], label='Clock Offset (m)')
+plt.title('Clock Offset Over Time')
+plt.xlabel('Epoch')
+plt.ylabel('Clock Offset (m)')
+plt.grid()
+plt.legend()
+plt.show()
