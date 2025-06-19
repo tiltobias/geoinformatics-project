@@ -5,5 +5,3 @@ numpy
 pathlib
 streamlit_folium
 matplotlib
-argparse
-sys
