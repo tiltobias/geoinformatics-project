@@ -1,4 +1,5 @@
 import numpy as np
+from .calculate_LSM import calculate_LSM
 
 """
 This script implements an Extended Kalman Filter (EKF) to estimate the user's position 
@@ -6,7 +7,7 @@ based on pseudorange data from 8 base stations.
 Following professor's notes for EKF implementation.
 """
 
-def calculate_ex_kalman(P, base_stations, dt=1.0, sigma_dt=0.5e-9, sigma_pos=1.0, sigma_vel=0.1, sigma_pseudorange=0.1):
+def calculate_ex_kalman(P, base_stations, dt=1.0, sigma_dt=0.5e-9, sigma_pos=1.0, sigma_vel=0.1, sigma_pseudorange=0.1, sigma_error=10.0):
     """
     Calculate the Extended Kalman Filter for the given pseudorange data.
     
@@ -18,7 +19,8 @@ def calculate_ex_kalman(P, base_stations, dt=1.0, sigma_dt=0.5e-9, sigma_pos=1.0
         sigma_pos (float): Position process noise standard deviation in meters.
         sigma_vel (float): Velocity process noise standard deviation in m/s.
         sigma_pseudorange (float): Pseudorange measurement noise standard deviation in meters.
-        
+        sigma_error (float): Initial error covariance matrix standard deviation.
+
     Returns:
         np.ndarray: Estimated user position and velocity over time. Local Cartesian coordinates (E, N, V_N, V_E, c*dt_u).
     """
@@ -37,12 +39,9 @@ def calculate_ex_kalman(P, base_stations, dt=1.0, sigma_dt=0.5e-9, sigma_pos=1.0
     # c*dt_u: Clock offset (in meters)
 
     # Initialize state vector
-    # Starting guess: center of base stations
-    initial_N = np.mean(base_stations[:, 1])  # North coordinate
-    initial_E = np.mean(base_stations[:, 0])  # East coordinate
-    initial_VN = 0.0  # Initial north velocity
-    initial_VE = 0.0  # Initial east velocity
-    initial_clock_offset = 0.0  # Initial clock offset
+    # Starting guess: LSM of first epoch
+    initial_E, initial_N, _, _ = calculate_LSM(P[:1], base_stations)[0]
+    initial_VN, initial_VE, initial_clock_offset = 0.0, 0.0, 0.0  # Assuming initial velocities are zero
 
     x_hat = np.array([initial_N, initial_E, initial_VN, initial_VE, initial_clock_offset])
     print(f"Initial state estimate: {x_hat}")
@@ -67,7 +66,7 @@ def calculate_ex_kalman(P, base_stations, dt=1.0, sigma_dt=0.5e-9, sigma_pos=1.0
     ])
 
     # Initial error covariance matrix
-    C_error = np.eye(5) * 100.0  # Large initial uncertainty (#TODO Assumption: 100 m uncertainty)
+    C_error = np.eye(5) * sigma_error**2
 
     # Measurement noise covariance matrix C_k^nu
     C_nu = np.eye(n_stations) * sigma_pseudorange**2
@@ -164,5 +163,6 @@ def calculate_ex_kalman(P, base_stations, dt=1.0, sigma_dt=0.5e-9, sigma_pos=1.0
         estimated_states[k, :] = x_hat
         covariances[k, :, :] = C_error
 
+    estimated_states[:, [0, 1]] = estimated_states[:, [1, 0]]  # N <-> E
     return estimated_states, covariances
 

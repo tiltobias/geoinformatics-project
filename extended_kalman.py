@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from modules.calculate_LSM import calculate_LSM
 
 """
 This script implements an Extended Kalman Filter (EKF) to estimate the user's position 
@@ -37,11 +38,8 @@ print(f"Pseudoranges shape: {P.shape}")
 
 # Initialize state vector
 # Starting guess: center of base stations
-initial_N = np.mean(base_stations[:, 1])  # North coordinate
-initial_E = np.mean(base_stations[:, 0])  # East coordinate
-initial_VN = 0.0  # Initial north velocity
-initial_VE = 0.0  # Initial east velocity
-initial_clock_offset = 0.0  # Initial clock offset
+initial_E, initial_N, _, _ = calculate_LSM(P[:1], base_stations)[0]
+initial_VN, initial_VE, initial_clock_offset = 0.0, 0.0, 0.0  # Assuming initial velocities are zero
 
 x_hat = np.array([initial_N, initial_E, initial_VN, initial_VE, initial_clock_offset])
 print(f"Initial state estimate: {x_hat}")
@@ -167,10 +165,10 @@ for k in range(n_measurements):
     estimated_states[k] = x_hat
     covariances[k] = C_error
     
-
+estimated_states[:, [0, 1]] = estimated_states[:, [1, 0]]  # N <-> E
 # Extract results for plotting
-positions_N = estimated_states[:, 0]
-positions_E = estimated_states[:, 1]
+positions_E = estimated_states[:, 0]
+positions_N = estimated_states[:, 1]
 velocities_N = estimated_states[:, 2]
 velocities_E = estimated_states[:, 3]
 clock_offset = estimated_states[:, 4]
@@ -218,5 +216,5 @@ print(f"Total distance traveled: {total_distance:.2f} m")
 print(f"Average speed: {avg_speed:.3f} m/s")
 
 # Save results to CSV
-results_df = pd.DataFrame(estimated_states, columns=['N', 'E', 'VN', 'VE', 'ClockOffset'])
+results_df = pd.DataFrame(estimated_states, columns=['E', 'N', 'VN', 'VE', 'ClockOffset'])
 results_df.to_csv("ex_kalman_LC.csv", index=False)
