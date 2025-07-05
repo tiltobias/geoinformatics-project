@@ -46,7 +46,7 @@ def transform_GG_to_LC(geodetic_coords, origin_GG):
         np.ndarray: Coordinates in Local Cartesian coordinates.
     """
     O_GC = X_GG_GC(O_GG_rad(origin_GG))
-    return np.array([R_GC_LC(O_GG_rad(origin_GG)) @ (X - O_GC) for X in geodetic_coords])
+    return np.array([R_GC_LC(O_GG_rad(origin_GG)) @ (O_GG_rad(X) - O_GC) for X in geodetic_coords])
 
 def transform_LC_to_GG(local_coords, origin_GG):
     """
