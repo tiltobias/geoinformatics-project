@@ -11,6 +11,16 @@ def O_GG_rad(O_GG):
     """
     return np.array([np.deg2rad(O_GG[0]), np.deg2rad(O_GG[1]), O_GG[2]])
 
+def O_GG_deg(O_GG_rad):
+    """
+    Convert origin in Global Geodetic coordinates from radians to degrees.
+    Args:
+        O_GG_rad (np.ndarray): Origin in radians (latitude, longitude, height).
+    Returns:
+        np.ndarray: Origin in Global Geodetic coordinates in degrees (latitude, longitude, height).
+    """
+    return np.array([np.rad2deg(O_GG_rad[0]), np.rad2deg(O_GG_rad[1]), O_GG_rad[2]])
+
 def create_origin(base_stations, base_station_height=20.):
     """
     Create the origin in Global Cartesian coordinates from base stations.
@@ -48,6 +58,6 @@ def transform_LC_to_GG(local_coords, origin_GG):
         np.ndarray: Coordinates in Global Geodetic coordinates.
     """
     O_GC = X_GG_GC(O_GG_rad(origin_GG))
-    return np.array([X_GC_GG(O_GC + R_GC_LC(O_GG_rad(origin_GG)).T @ X) for X in local_coords])
+    return O_GG_deg(np.array([X_GC_GG(O_GC + R_GC_LC(O_GG_rad(origin_GG)).T @ X) for X in local_coords]))
 
 
