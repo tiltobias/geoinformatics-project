@@ -25,7 +25,7 @@ st.markdown(
     1. Prepare **two CSV files**:
        * **Base‑station file** – `Title, Latitude, Longitude, Height`
        * **Pseudorange file**  – one column per base‑station (`BS1, BS2, …`) containing *metres* for every epoch.
-    2. *(Optional)* A **true trajectory** CSV with `Latitude,Longitude` columns lets you compare estimates against ground truth.
+    2. *(Optional)* A **true trajectory** CSV with `Latitude,Longitude` columns lets you compare estimates against the truth.
     3. Upload the files with the widgets below.
     4. Click **Continue ▶︎** to choose an estimator and visualise results.
     """
@@ -37,7 +37,7 @@ st.markdown(
 DATA_DIR = Path(__file__).parent.parent / "DemoData"
 bs_sample   = DATA_DIR / "base_stations.csv"
 pr_sample   = DATA_DIR / "pseudoranges.csv"
-truth_sample = DATA_DIR / "true-trajectory.csv"
+truth_sample = DATA_DIR / "true_trajectory.csv"
 
 cols = st.columns(3)
 if bs_sample.exists():

@@ -1,5 +1,6 @@
 import numpy as np
 from transformations import X_GC_GG, X_GG_GC, R_GC_LC
+import pandas as pd
 
 def O_GG_rad(O_GG):
     """
@@ -61,3 +62,10 @@ def transform_LC_to_GG(local_coords, origin_GG):
     return np.array([O_GG_deg(X_GC_GG(O_GC + R_GC_LC(O_GG_rad(origin_GG)).T @ X)) for X in local_coords])
 
 
+def _ndarray_to_csv(array: np.ndarray, cols: list, fname: str) -> bytes:
+    """Return a CSV-encoded bytes object from a NumPy (n, m) array."""
+    return (
+        pd.DataFrame(array, columns=cols)  
+        .to_csv(index=False)
+        .encode("utf-8")
+    )

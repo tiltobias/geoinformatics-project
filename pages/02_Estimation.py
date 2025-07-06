@@ -11,6 +11,7 @@ from modules import (
     calculate_LSM,
     calculate_kalman,
     calculate_ex_kalman,
+    _ndarray_to_csv,
 )
 
 # aliases
@@ -59,8 +60,8 @@ with st.sidebar.expander("Least-Squares"):
     lsm_btn = st.button("▶ Run Least-Squares")
 
 with st.sidebar.expander("Least-Squares + Kalman"):
-    q_pos = st.number_input("Observation σ [m]", 0.0, 20.0, 3.0, 0.5)
-    q_vel = st.number_input("Model σ error [m]", 0.0, 10.0, 0.5, 0.1)
+    q_pos = st.number_input("Observation σ [m]", 0.0, 100.0, 5.0, 0.1)
+    q_vel = st.number_input("Model σ error [m]", 0.0, 100.0, 5.0, 0.1)
     kf_btn = st.button("▶ Run LS + Kalman")
 
 with st.sidebar.expander("Extended Kalman Filter"):
@@ -76,9 +77,66 @@ with st.sidebar.expander("Extended Kalman Filter"):
     sigma_dt  = st.number_input("Clock offset σ [ns]",       0.0, 10.0, 1.0, 0.5)
     ekf_btn   = st.button("▶ Run Extended Kalman Filter")
 
-with st.sidebar.expander("Map layers", expanded=True):
+st.sidebar.title("Map layers")
+with st.sidebar.expander("Toggle", expanded=True):
     show_truth = st.checkbox("True trajectory", value=(TRUTH is not None), disabled=(TRUTH is None))
     show_bs    = st.checkbox("Base-stations",   value=True)
+# --- 0. helper ---------------------------------------------------------------
+def add_download_button(label, arr, cols, fname, col):
+    """
+    Render one download button in the given `st.column`.
+
+    `fname` is forwarded to `_ndarray_to_csv` so the helper can embed or log it,
+    even though the Streamlit button also needs it separately for `file_name=`.
+    """
+    col.download_button(
+        label=label,
+        data=_ndarray_to_csv(arr, cols, fname),
+        file_name=fname,
+        mime="text/csv",
+        disabled=arr is None,
+        use_container_width=True,
+    )
+
+# --- 1. sidebar --------------------------------------------------------------
+st.sidebar.title("Download solutions")
+
+with st.sidebar.expander("CSV files", expanded=False):
+
+    if not any(k in st.session_state for k in ("lsm_sol", "kf_sol", "ekf_sol")):
+        st.info("Run an estimator to enable downloads.")
+
+    specs = [
+        ("LS",  "lsm_sol", ["E", "N", "U", "t"]),
+        ("KF",  "kf_sol",  ["E", "N", "VN", "VE"]),
+        ("EKF", "ekf_sol", ["E", "N", "VE", "VN", "t"]),
+    ]
+
+    for tag, key, lc_cols in specs:
+        sol = st.session_state.get(key)
+        if sol is None:
+            continue
+
+        st.markdown(f"**{tag} solution**")
+        c_lc, c_gg = st.columns(2)
+
+        add_download_button(
+            f"{tag} – LC",
+            sol["lc"],
+            lc_cols,
+            f"{tag.lower()}_solution_lc.csv",
+            c_lc,
+        )
+        add_download_button(
+            f"{tag} – GG",
+            sol["gg"],
+            ["Latitude", "Longitude", "Height"],
+            f"{tag.lower()}_solution_gg.csv",
+            c_gg,
+        )
+
+        
+   
 
 st.markdown("&nbsp;")
 
@@ -103,25 +161,27 @@ if lsm_btn:
 # 5. Run Kalman smoother  (LS → KF)
 # ------------------------------------------------------------------
 if kf_btn:
-    if "lsm_sol" not in st.session_state:            # silent LS
+    if "lsm_sol" not in st.session_state:       # …silent LS first
         lsm_lc = run_lsm(P, bs_lc)
-        lsm_gg = transform_LC_to_GG(lsm_lc[:, :3], origin_GG)
-        st.session_state["lsm_sol"] = {"lc": lsm_lc, "gg": lsm_gg}
-        # do NOT touch show_lsm here
+        st.session_state["lsm_sol"] = {"lc": lsm_lc,
+                                       "gg": transform_LC_to_GG(lsm_lc[:, :3], origin_GG)}
 
     with st.spinner("Running LS + Kalman …"):
-        kf_state = run_kf(
+        kf_state  = run_kf(                     # (n,4,1)
             st.session_state["lsm_sol"]["lc"][:, :2],
-            sigma_obs   = q_pos,
-            sigma_error = q_vel,
+            sigma_obs=q_pos,
+            sigma_error=q_vel,
         )
-        kf_EN = kf_state[:, :2, 0]
-        kf_lc = np.column_stack([kf_EN, np.zeros(len(kf_EN))])
-        kf_gg = transform_LC_to_GG(kf_lc, origin_GG)
+        kf_lc = kf_state[:, :, 0]               # keep 4-state vector  (E,N,VE,VN)
 
-    st.session_state["kf_sol"]  = {"lc": kf_lc, "gg": kf_gg}
+        # we only need E,N (plus dummy U) to convert to GG
+        kf_pos = np.column_stack([kf_lc[:, :2], np.zeros(len(kf_lc))])
+        kf_gg  = transform_LC_to_GG(kf_pos, origin_GG)
+
+    st.session_state["kf_sol"] = {"lc": kf_lc, "gg": kf_gg}
     st.session_state["show_kf"] = True
     st.success("Kalman finished.")
+
 
 # ------------------------------------------------------------------
 # 6. Run Extended-Kalman filter
@@ -137,8 +197,9 @@ if ekf_btn:
             sigma_vel         = sigma_vel,
             sigma_pseudorange = r_pr_ekf
         )
-        ekf_lc = np.array(ekf_states)[:, :3]  # (epochs, E,N,U)
-        ekf_gg = transform_LC_to_GG(ekf_lc, origin_GG)
+        ekf_lc = ekf_states[:, [0, 1, 2, 3, 4]]  # (E,N,VN,VE,c*dt_u)
+        ekf_lc_pos = np.column_stack([ekf_lc[:, :2], np.zeros(len(ekf_lc))])
+        ekf_gg = transform_LC_to_GG(ekf_lc_pos, origin_GG)
 
     st.session_state["ekf_sol"]  = {"lc": ekf_lc, "gg": ekf_gg}
     st.session_state["show_ekf"] = True
@@ -166,14 +227,14 @@ elif show_lsm and "lsm_sol" in st.session_state:
 else:
     center_lat, center_lon = bs_gg[:, 0].mean(), bs_gg[:, 1].mean()
 
-m = folium.Map(location=[center_lat, center_lon], zoom_start=17)
+m = folium.Map(location=[center_lat, center_lon], zoom_start=17, max_zoom=30)
 
 # ------------------------------------------------------------------
 # 9. Draw layers
 # ------------------------------------------------------------------
 if show_truth and TRUTH is not None:
     folium.PolyLine(TRUTH.tolist(), color="green", weight=3,
-                    tooltip="Ground-truth").add_to(m)
+                    tooltip="True trajectory").add_to(m)
 
 if show_bs:
     for title, (lat, lon, _) in zip(titles, bs_gg):
