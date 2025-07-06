@@ -46,23 +46,5 @@ def calculate_kalman(LSM_coords: np.ndarray, sigma_obs=5., sigma_error=10.) -> n
         C_error = (I - G @ A) @ K
 
         x = np.vstack((x, [x_hat]))
+        
     return x
-
-# TODO: The following code maybe relavant for plotting in the app
-
-# import matplotlib.pyplot as plt
-# import pandas as pd
-# data = pd.read_csv('./user_position_LSM.csv')[['E', 'N']].to_numpy()
-
-# x = calculate_kalman(data)
-
-# plt.plot(data[:, 0], data[:, 1], "b.", markersize=3) # all data
-# plt.plot(x[:, 0, 0], x[:, 1, 0], "r-", linewidth=3) # estimated path
-# plt.plot(data[0, 0], data[0, 1], "go") # start point
-# plt.legend(["Data", "Estimated path", "Start point"])
-# plt.show()
-
-
-# # Save estimated positions to CSV
-# results_df = pd.DataFrame(x[:, :, 0], columns=['E', 'N', 'VN', 'VE'])
-# results_df.to_csv("kalman_LC.csv", index=False)
