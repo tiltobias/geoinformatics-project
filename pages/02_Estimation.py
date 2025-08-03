@@ -61,7 +61,7 @@ with st.sidebar.expander("Least-Squares"):
 
 with st.sidebar.expander("Least-Squares + Kalman"):
     q_pos = st.number_input("Observation σ [m]", 0.0, 100.0, 5.0, 0.1)
-    q_vel = st.number_input("Model σ error [m]", 0.0, 100.0, 5.0, 0.1)
+    q_vel = st.number_input("Model σ error [m]", 0.0, 100.0, 10.0, 0.1)
     kf_btn = st.button("▶ Run LS + Kalman")
 
 with st.sidebar.expander("Extended Kalman Filter"):
@@ -71,10 +71,10 @@ with st.sidebar.expander("Extended Kalman Filter"):
     else:
         dt_default = 1.0
     dt_ekf   = st.number_input("Time step dt [s]", 0.01, 10.0, dt_default, 0.05)
-    r_pr_ekf = st.number_input("Meas. σ pseudorange [m]", 0.0, 20.0, 3.0, 0.5)
+    r_pr_ekf = st.number_input("Meas. σ pseudorange [m]", 0.0, 20.0, 0.1, 0.5)
     sigma_pos = st.number_input("Process σ position [m]",   0.0, 20.0, 1.0, 0.1)
-    sigma_vel = st.number_input("Process σ velocity [m/s]", 0.0, 10.0, 0.5, 0.1)
-    sigma_dt  = st.number_input("Clock offset σ [ns]",       0.0, 10.0, 1.0, 0.5)
+    sigma_vel = st.number_input("Process σ velocity [m/s]", 0.0, 10.0, 0.1, 0.1)
+    sigma_dt  = st.number_input("Clock offset σ [ns]",       0.0, 10.0, 0.5, 0.5)
     ekf_btn   = st.button("▶ Run Extended Kalman Filter")
 
 st.sidebar.title("Map layers")
@@ -85,9 +85,6 @@ with st.sidebar.expander("Toggle", expanded=True):
 def add_download_button(label, arr, cols, fname, col):
     """
     Render one download button in the given `st.column`.
-
-    `fname` is forwarded to `_ndarray_to_csv` so the helper can embed or log it,
-    even though the Streamlit button also needs it separately for `file_name=`.
     """
     col.download_button(
         label=label,
