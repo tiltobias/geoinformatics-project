@@ -74,7 +74,7 @@ with st.sidebar.expander("Extended Kalman Filter"):
     r_pr_ekf = st.number_input("Meas. σ pseudorange [m]", 0.0, 20.0, 1.0, 0.5)
     sigma_pos = st.number_input("Process σ position [m]",   0.0, 20.0, 1.0, 0.1)
     sigma_vel = st.number_input("Process σ velocity [m/s]", 0.0, 10.0, 0.1, 0.1)
-    sigma_dt  = st.number_input("Clock offset σ [ns]",       0.0, 10.0, 1.0, 0.5)
+    sigma_dt  = st.number_input("Clock offset σ [ns]",       0.0, 10.0, 0.5, 0.5)
     ekf_btn   = st.button("▶ Run Extended Kalman Filter")
 
 st.sidebar.title("Map layers")
