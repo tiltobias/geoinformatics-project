@@ -60,7 +60,7 @@ with st.sidebar.expander("Least-Squares"):
     lsm_btn = st.button("▶ Run Least-Squares")
 
 with st.sidebar.expander("Least-Squares + Kalman"):
-    q_pos = st.number_input("Observation σ [m]", 0.0, 100.0, 5.0, 0.1)
+    q_pos = st.number_input("Observation σ [m]", 0.0, 100.0, 3.0, 0.1)
     q_vel = st.number_input("Model σ error [m]", 0.0, 100.0, 10.0, 0.1)
     kf_btn = st.button("▶ Run LS + Kalman")
 
@@ -71,10 +71,10 @@ with st.sidebar.expander("Extended Kalman Filter"):
     else:
         dt_default = 1.0
     dt_ekf   = st.number_input("Time step dt [s]", 0.01, 10.0, dt_default, 0.05)
-    r_pr_ekf = st.number_input("Meas. σ pseudorange [m]", 0.0, 20.0, 0.1, 0.5)
+    r_pr_ekf = st.number_input("Meas. σ pseudorange [m]", 0.0, 20.0, 1.0, 0.5)
     sigma_pos = st.number_input("Process σ position [m]",   0.0, 20.0, 1.0, 0.1)
     sigma_vel = st.number_input("Process σ velocity [m/s]", 0.0, 10.0, 0.1, 0.1)
-    sigma_dt  = st.number_input("Clock offset σ [ns]",       0.0, 10.0, 0.5, 0.5)
+    sigma_dt  = st.number_input("Clock offset σ [ns]",       0.0, 10.0, 1.0, 0.5)
     ekf_btn   = st.button("▶ Run Extended Kalman Filter")
 
 st.sidebar.title("Map layers")
@@ -250,7 +250,7 @@ if show_kf and "kf_sol" in st.session_state:
 
 if show_ekf and "ekf_sol" in st.session_state:
     folium.PolyLine(st.session_state["ekf_sol"]["gg"][:, :2].tolist(),
-                    color="purple", weight=3,
+                    color="orange", weight=3,
                     tooltip="Extended Kalman").add_to(m)
 
 folium.LayerControl().add_to(m)
