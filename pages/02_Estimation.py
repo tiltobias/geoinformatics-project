@@ -13,7 +13,7 @@ from modules import (
     calculate_ex_kalman,
     _ndarray_to_csv,
 )
-
+c = 299792458  # Speed of light in m/s
 # aliases
 run_lsm   = calculate_LSM
 run_kf    = calculate_kalman
@@ -96,9 +96,9 @@ def add_download_button(label, arr, cols, fname, col):
     )
 
 # --- 1. sidebar --------------------------------------------------------------
-st.sidebar.title("Download solutions")
+st.sidebar.title("Download CSV files")
 
-with st.sidebar.expander("CSV files", expanded=False):
+with st.sidebar.expander("Estimator solutions", expanded=False):
 
     if not any(k in st.session_state for k in ("lsm_sol", "kf_sol", "ekf_sol")):
         st.info("Run an estimator to enable downloads.")
@@ -132,10 +132,64 @@ with st.sidebar.expander("CSV files", expanded=False):
             c_gg,
         )
 
-        
-   
 
+def calculate_residuals(est_lc: np.ndarray,
+                           bs_lc:  np.ndarray,
+                           P:      np.ndarray) -> np.ndarray:
+
+    diffs  = bs_lc[None, :, :] - est_lc[:, None, :3]   # (epochs, n_st, 3)
+    dists  = np.linalg.norm(diffs, axis=-1)            # (epochs, n_st)
+    # clock-offset term
+    c = 299792458  # Speed of light in m/s
+    clk    = est_lc[:, -1]*c                  
+    rho_est = dists + clk[:, None]
+    residuals = P - rho_est
+    return residuals                   
+
+
+with st.sidebar.expander("Residuals", expanded=False):
+
+    if "lsm_sol" in st.session_state:
+        lsm_res = calculate_residuals(
+            st.session_state["lsm_sol"]["lc"],
+            bs_lc,
+            st.session_state["P"]
+        )
+        st.session_state["lsm_res"] = lsm_res
+
+        add_download_button(
+            "LS residuals",
+            lsm_res,
+            titles.tolist(),
+            "ls_residuals.csv",
+            col=st,
+        )
+
+    else:
+        st.info("Run Least-Squares to calculate residuals.")
+
+    if "ekf_sol" in st.session_state:
+        ekf_res = calculate_residuals(
+            st.session_state["ekf_sol"]["lc"],
+            bs_lc,
+            st.session_state["P"]
+        )
+        st.session_state["ekf_res"] = ekf_res
+
+        add_download_button(
+            "EKF residuals",
+            ekf_res,
+            titles.tolist(),
+            "ekf_residuals.csv",
+            col=st,
+        )
+    else:
+        st.info("Run Extended Kalman Filter to calculate residuals.")
+        
+    
 st.markdown("&nbsp;")
+
+
 
 # ------------------------------------------------------------------
 # 0. Widget-state defaults (only once)
@@ -195,6 +249,7 @@ if ekf_btn:
             sigma_pseudorange = r_pr_ekf
         )
         ekf_lc = ekf_states[:, [0, 1, 2, 3, 4]]  # (E,N,VN,VE,c*dt_u)
+        ekf_lc[:, -1] /= c  
         ekf_lc_pos = np.column_stack([ekf_lc[:, :2], np.zeros(len(ekf_lc))])
         ekf_gg = transform_LC_to_GG(ekf_lc_pos, origin_GG)
 
