@@ -19,7 +19,7 @@ dt = 1.0  # Time step in seconds (used in the transition matrix T)
 sigma_dt = 0.5e-9  # Clock drift standard deviation (0.5 ns)
 sigma_pos = 1.0  # Position process noise standard deviation (Assuming 1 meter)
 sigma_vel = 0.1  # Velocity process noise standard deviation (Assuming 0.1 m/s)
-sigma_pseudorange = 0.1  # Pseudorange measurement noise standard deviation (Assuming 1 meter)
+sigma_pseudorange = 1  # Pseudorange measurement noise standard deviation (Assuming 1 meter)
 # TODO Review Assumptions above
 
 # Number of base stations and measurements
