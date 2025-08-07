@@ -30,7 +30,7 @@ A = np.array([[1, 0, 1, 0],
 
 x_hat = x[0] 
 
-for t in range(len(data)):
+for t in range(1, len(data)):
     x_tilde = T @ x_hat
     
     K = C_model + T @ C_error @ T.T 
