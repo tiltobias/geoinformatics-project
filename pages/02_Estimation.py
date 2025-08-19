@@ -219,8 +219,8 @@ if kf_btn:
                                        "gg": transform_LC_to_GG(lsm_lc[:, :3], origin_GG)}
 
     with st.spinner("Running LS + Kalman …"):
-        kf_state  = run_kf(                     # (n,4,1)
-            st.session_state["lsm_sol"]["lc"][:, :2],
+        kf_state  = run_kf(                     
+            st.session_state["lsm_sol"]["lc"][:, :3],
             sigma_obs=q_obs,
             sigma_dm_pos=q_dm_pos,
             sigma_dm_vel=q_dm_vel
