@@ -60,8 +60,8 @@ with st.sidebar.expander("Least-Squares"):
     lsm_btn = st.button("▶ Run Least-Squares")
 
 with st.sidebar.expander("Least-Squares + Kalman"):
-    q_pos = st.number_input("Observation σ [m]", 0.0, 100.0, 3.0, 0.1)
-    q_vel = st.number_input("Model σ error [m]", 0.0, 100.0, 10.0, 0.1)
+    q_obs = st.number_input("Observation σ [m]", 0.0, 100.0, 3.0, 0.1)
+    q_dm = st.number_input("Dynamic model σ [m]", 0.0, 100.0, 10.0, 0.1)
     kf_btn = st.button("▶ Run LS + Kalman")
 
 with st.sidebar.expander("Extended Kalman Filter"):
@@ -220,8 +220,8 @@ if kf_btn:
     with st.spinner("Running LS + Kalman …"):
         kf_state  = run_kf(                     # (n,4,1)
             st.session_state["lsm_sol"]["lc"][:, :2],
-            sigma_obs=q_pos,
-            sigma_error=q_vel,
+            sigma_obs=q_obs,
+            sigma_dm=q_dm,
         )
         kf_lc = kf_state[:, :, 0]               # keep 4-state vector  (E,N,VE,VN)
 

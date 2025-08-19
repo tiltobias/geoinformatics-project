@@ -1,6 +1,6 @@
 import numpy as np
 
-def calculate_kalman(LSM_coords: np.ndarray, sigma_obs=5., sigma_error=10.) -> np.ndarray:
+def calculate_kalman(LSM_coords: np.ndarray, sigma_obs=5., sigma_dm=1.) -> np.ndarray:
     """
     Calculate the Kalman filter for the given data.
     
@@ -21,9 +21,9 @@ def calculate_kalman(LSM_coords: np.ndarray, sigma_obs=5., sigma_error=10.) -> n
     X, Y = data[0, 0], data[0, 1]
     X_dot, Y_dot = 0, 0
     x = np.array([[[X], [Y], [X_dot], [Y_dot]]])
-
+    sigma_error = 10.0 
     C_error = np.diag([sigma_error**2, sigma_error**2, 1, 1])
-    C_model = np.diag([1, 1, 1, 1])
+    C_model = np.diag([sigma_dm, sigma_dm, sigma_dm, sigma_dm])
     C_obs = np.diag([sigma_obs**2, sigma_obs**2])  # Adjust smoothness of the path ======================================
     I = np.identity(4)
 
@@ -32,8 +32,8 @@ def calculate_kalman(LSM_coords: np.ndarray, sigma_obs=5., sigma_error=10.) -> n
                 [0, 0, 1, 0],
                 [0, 0, 0, 1]])
 
-    A = np.array([[1, 0, 1, 0], 
-                [0, 1, 0, 1]])
+    A = np.array([[1, 0, 0, 0], 
+                [0, 1, 0, 0]])
 
     x_hat = x[0] 
 
