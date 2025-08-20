@@ -17,7 +17,7 @@ x = np.array([[[X], [Y], [X_dot], [Y_dot]]])
 
 C_error = np.diag([10**2, 10**2, 1, 1])
 C_model = np.diag([1, 1, 1, 1])
-C_obs = np.diag([3**2, 3**2])  # Adjust smoothness of the path ======================================
+C_obs = np.diag([2.5**2, 2.5**2])  # Adjust smoothness of the path ======================================
 I = np.identity(4)
 
 T = np.array([[1, 0, 1, 0],
@@ -25,8 +25,8 @@ T = np.array([[1, 0, 1, 0],
               [0, 0, 1, 0],
               [0, 0, 0, 1]])
 
-A = np.array([[1, 0, 1, 0], 
-              [0, 1, 0, 1]])
+A = np.array([[1, 0, 0, 0], 
+              [0, 1, 0, 0]])
 
 x_hat = x[0] 
 
